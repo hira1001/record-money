@@ -391,20 +391,22 @@ export function InputModal({ open, onOpenChange, onSubmit, existingTransactions 
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 flex flex-col flex-1 min-h-0">
-          <TabsList className="grid grid-cols-3 w-full mx-5 bg-secondary flex-shrink-0">
-            <TabsTrigger value="manual" className="flex items-center justify-center gap-1.5 text-xs">
-              <Keyboard className="w-3.5 h-3.5" />
-              手入力
-            </TabsTrigger>
-            <TabsTrigger value="camera" className="flex items-center justify-center gap-1.5 text-xs">
-              <Camera className="w-3.5 h-3.5" />
-              カメラ
-            </TabsTrigger>
-            <TabsTrigger value="voice" className="flex items-center justify-center gap-1.5 text-xs">
-              <Mic className="w-3.5 h-3.5" />
-              音声
-            </TabsTrigger>
-          </TabsList>
+          <div className="px-5 flex-shrink-0">
+            <TabsList className="grid grid-cols-3 w-full bg-secondary">
+              <TabsTrigger value="manual" className="flex items-center justify-center gap-1.5 text-xs">
+                <Keyboard className="w-3.5 h-3.5" />
+                手入力
+              </TabsTrigger>
+              <TabsTrigger value="camera" className="flex items-center justify-center gap-1.5 text-xs">
+                <Camera className="w-3.5 h-3.5" />
+                カメラ
+              </TabsTrigger>
+              <TabsTrigger value="voice" className="flex items-center justify-center gap-1.5 text-xs">
+                <Mic className="w-3.5 h-3.5" />
+                音声
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <div className="p-5 pt-4 overflow-y-auto flex-1">
             <TabsContent value="manual" className="mt-0 space-y-4">
