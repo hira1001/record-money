@@ -1,65 +1,152 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { BalanceCard } from "@/components/dashboard/balance-card";
+import { SummaryStats } from "@/components/dashboard/summary-stats";
+import { TransactionList } from "@/components/dashboard/transaction-list";
+import { FAB } from "@/components/dashboard/fab";
+import { InputModal } from "@/components/transaction/input-modal";
+import type { Transaction, TransactionType } from "@/types";
+
+// Mock data for initial development
+const mockTransactions: Transaction[] = [
+  {
+    id: "1",
+    user_id: "user-1",
+    amount: 1200,
+    type: "expense",
+    category_id: "food",
+    category: { id: "food", user_id: null, name: "食費", color: "#f59e0b", icon: "food", is_default: true },
+    description: "セブンイレブン",
+    date: new Date().toISOString(),
+    status: "confirmed",
+    source: "manual",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    user_id: "user-1",
+    amount: 350000,
+    type: "income",
+    category_id: "income",
+    category: { id: "income", user_id: null, name: "給与", color: "#10b981", icon: "income", is_default: true },
+    description: "給与振込",
+    date: new Date(Date.now() - 86400000).toISOString(),
+    status: "confirmed",
+    source: "gmail_auto",
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: "3",
+    user_id: "user-1",
+    amount: 5800,
+    type: "expense",
+    category_id: "transport",
+    category: { id: "transport", user_id: null, name: "交通費", color: "#3b82f6", icon: "transport", is_default: true },
+    description: "定期券",
+    date: new Date(Date.now() - 172800000).toISOString(),
+    status: "confirmed",
+    source: "ocr",
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+  },
+];
+
+export default function DashboardPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+
+  // Calculate summary data
+  const totalIncome = transactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalExpense = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const monthlyBudget = 200000; // TODO: Get from settings
+  const remainingBudget = monthlyBudget - totalExpense;
+  const percentUsed = (totalExpense / monthlyBudget) * 100;
+
+  const handleAddTransaction = (data: {
+    amount: number;
+    type: TransactionType;
+    description: string;
+  }) => {
+    const newTransaction: Transaction = {
+      id: crypto.randomUUID(),
+      user_id: "user-1",
+      amount: data.amount,
+      type: data.type,
+      category_id: null,
+      description: data.description,
+      date: new Date().toISOString(),
+      status: "confirmed",
+      source: "manual",
+      created_at: new Date().toISOString(),
+    };
+
+    // Optimistic update
+    setTransactions((prev) => [newTransaction, ...prev]);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="min-h-screen pb-24 safe-top safe-bottom">
+      {/* Header */}
+      <motion.header
+        className="sticky top-0 z-40 glass px-6 py-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gradient">RecordMoney</h1>
+            <p className="text-xs text-muted-foreground">
+              {new Date().toLocaleDateString("ja-JP", {
+                year: "numeric",
+                month: "long",
+              })}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <span className="text-sm font-medium">U</span>
+          </div>
+        </div>
+      </motion.header>
+
+      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
+        {/* Balance Card */}
+        <BalanceCard
+          remainingBudget={remainingBudget}
+          totalBudget={monthlyBudget}
+          percentUsed={percentUsed}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {/* Summary Stats */}
+        <SummaryStats totalIncome={totalIncome} totalExpense={totalExpense} />
+
+        {/* Transaction List */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">最近の取引</h2>
+            <button className="text-sm text-action hover:underline">
+              すべて見る
+            </button>
+          </div>
+          <TransactionList transactions={transactions} />
+        </section>
+      </div>
+
+      {/* Floating Action Button */}
+      <FAB onClick={() => setIsModalOpen(true)} />
+
+      {/* Input Modal */}
+      <InputModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSubmit={handleAddTransaction}
+      />
+    </main>
   );
 }
