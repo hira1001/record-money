@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -78,13 +78,41 @@ export default function StatsPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const goToPreviousMonth = () => {
     setCurrentMonth((prev) => subMonths(prev, 1));
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
   };
 
   const goToNextMonth = () => {
     setCurrentMonth((prev) => addMonths(prev, 1));
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX.current;
+
+    // Swipe threshold: 50px
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swiped left -> next month
+        goToNextMonth();
+      } else {
+        // Swiped right -> previous month
+        goToPreviousMonth();
+      }
+    }
   };
 
   // Mock data
@@ -131,32 +159,36 @@ export default function StatsPage() {
           <Link href="/" className="p-2 -ml-2 press-effect">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              className="w-8 h-8"
+              className="w-9 h-9 rounded-full bg-secondary hover:bg-muted press-effect"
               onClick={goToPreviousMonth}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5" />
             </Button>
-            <span className="text-base font-semibold min-w-[100px] text-center">
+            <span className="text-base font-semibold min-w-[120px] text-center">
               {format(currentMonth, "yyyy年M月", { locale: ja })}
             </span>
             <Button
               variant="ghost"
               size="icon"
-              className="w-8 h-8"
+              className="w-9 h-9 rounded-full bg-secondary hover:bg-muted press-effect"
               onClick={goToNextMonth}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </Button>
           </div>
           <div className="w-9" />
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-6 max-w-lg mx-auto">
+      <div
+        className="px-4 py-4 space-y-6 max-w-lg mx-auto"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
           <motion.div
