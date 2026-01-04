@@ -4,6 +4,8 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { detectDuplicates } from "@/lib/utils";
+import { BatchConfirmModal } from "./batch-confirm-modal";
 
 // Type definitions for Web Speech API
 interface SpeechRecognition extends EventTarget {
@@ -88,6 +90,14 @@ import {
 } from "lucide-react";
 import type { TransactionType } from "@/types";
 
+interface BatchTransaction {
+  amount: number;
+  description: string;
+  date: string;
+  suggested_category?: string | null;
+  isDuplicate?: boolean;
+}
+
 interface InputModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -96,6 +106,11 @@ interface InputModalProps {
     type: TransactionType;
     description: string;
   }) => void;
+  existingTransactions?: Array<{
+    amount: number;
+    description: string;
+    date: string;
+  }>;
 }
 
 const categories = [
@@ -109,7 +124,7 @@ const categories = [
   { id: "other", name: "その他", icon: "📦" },
 ];
 
-export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
+export function InputModal({ open, onOpenChange, onSubmit, existingTransactions = [] }: InputModalProps) {
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<TransactionType>("expense");
   const [description, setDescription] = useState("");
@@ -128,6 +143,10 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
     description: string;
   } | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Batch OCR state
+  const [batchTransactions, setBatchTransactions] = useState<BatchTransaction[]>([]);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
   const handleSubmit = () => {
     if (!amount || isNaN(Number(amount))) return;
@@ -292,8 +311,30 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
         body: formData,
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      if (!response.ok) {
+        throw new Error(`OCR API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // Check if this is a batch result (credit card statement)
+      if (result.is_batch && result.transactions && result.transactions.length > 0) {
+        // Detect duplicates
+        const transactionsWithDuplicates = detectDuplicates(
+          result.transactions,
+          existingTransactions
+        );
+
+        setBatchTransactions(transactionsWithDuplicates);
+        setIsBatchModalOpen(true);
+        onOpenChange(false); // Close input modal
+
+        // Haptic feedback for batch detection
+        if (navigator.vibrate) {
+          navigator.vibrate([10, 20, 10]);
+        }
+      } else if (result.amount && result.description) {
+        // Single transaction (regular receipt)
         setScanResult({
           amount: result.amount,
           description: result.description,
@@ -304,11 +345,39 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
         if (navigator.vibrate) {
           navigator.vibrate([10, 30, 10]);
         }
+      } else {
+        // No valid data found
+        throw new Error("画像から取引情報を読み取れませんでした");
       }
     } catch (error) {
       console.error("OCR Error:", error);
+      // User-friendly error feedback
+      alert(error instanceof Error ? error.message : "画像の読み取りに失敗しました。もう一度お試しください。");
+      if (navigator.vibrate) {
+        navigator.vibrate([50, 100, 50]); // Error vibration pattern
+      }
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handleBatchConfirm = (confirmedTransactions: BatchTransaction[]) => {
+    // Process each confirmed transaction
+    confirmedTransactions.forEach((tx) => {
+      onSubmit({
+        amount: tx.amount,
+        type: "expense", // Credit card transactions are always expenses
+        description: tx.description,
+      });
+    });
+
+    // Clear batch state
+    setBatchTransactions([]);
+    setIsBatchModalOpen(false);
+
+    // Haptic feedback for batch confirmation
+    if (navigator.vibrate) {
+      navigator.vibrate([10, 30, 10]);
     }
   };
 
@@ -676,6 +745,14 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
           </div>
         </Tabs>
       </DialogContent>
+
+      {/* Batch Confirmation Modal for Credit Card Statements */}
+      <BatchConfirmModal
+        open={isBatchModalOpen}
+        onOpenChange={setIsBatchModalOpen}
+        transactions={batchTransactions}
+        onConfirm={handleBatchConfirm}
+      />
     </Dialog>
   );
 }

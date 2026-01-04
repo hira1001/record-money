@@ -18,7 +18,7 @@ interface BatchTransaction {
   amount: number;
   description: string;
   date: string;
-  suggested_category: string | null;
+  suggested_category?: string | null;
   isDuplicate?: boolean;
 }
 

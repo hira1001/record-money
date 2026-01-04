@@ -258,6 +258,11 @@ export default function DashboardPage() {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         onSubmit={handleAddTransaction}
+        existingTransactions={transactions.map((t) => ({
+          amount: t.amount,
+          description: t.description || "",
+          date: t.date,
+        }))}
       />
 
       {/* Bottom Tab Bar */}

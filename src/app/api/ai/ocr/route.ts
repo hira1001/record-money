@@ -78,6 +78,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(image.type)) {
+      return NextResponse.json(
+        { error: "Invalid file type. Please upload a JPEG, PNG, or WebP image." },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (image.size > maxSize) {
+      return NextResponse.json(
+        { error: "File too large. Maximum size is 10MB." },
+        { status: 400 }
+      );
+    }
+
     // Convert image to base64
     const bytes = await image.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");

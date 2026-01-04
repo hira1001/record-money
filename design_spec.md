@@ -16,7 +16,12 @@
 
 ### 2.2 The "Auto-Ingest" Engine (Automation)
 * **Visual Receipt OCR (Gemini Flash)**:
-    * カメラで撮影 → `gemini-1.5-flash` が画像を解析 → JSONデータ化。これを数秒で完了させる。
+    * **単一レシート**: カメラで撮影 → `gemini-1.5-flash` が画像を解析 → JSONデータ化。これを数秒で完了させる。
+    * **クレジットカード明細（バッチモード）**:
+        - 明細スクショから複数取引を一括検出。
+        - 各取引の日付・店名・金額・推奨カテゴリを抽出。
+        - 重複検出アルゴリズムで既存取引との照合。
+        - 確認モーダルで全取引を一覧表示し、編集・削除が可能。
 * **Gmail Watcher (Google Apps Script)**:
     * 銀行・カード会社・PayPayの決済通知メールをGASで検知。
     * メール本文をアプリのAPIエンドポイントへPOSTし、AIが自動解析・登録。
@@ -100,13 +105,32 @@ create table budgets (
 ### 5.2 Key Screens
 * **Dashboard**:
     * 「今月あと使える金額」を画面上部に巨大なタイポグラフィで表示。
+    * 予算設定をインライン編集可能（Settings アイコンクリック）。
     * 直近のトランザクションをカード形式でリスト表示。
-    * FAB (Floating Action Button) で入力モーダル起動。
+    * FAB (Floating Action Button) で入力モーダル起動（bottom-24に配置）。
+    * 収入・支出のサマリーカード（Bento Grid レイアウト）。
+    * 収支バランスのアニメーショングラフ。
 * **Input Modal**:
     * タブ切り替え: [手入力] [カメラスキャン] [音声入力]。
     * AI解析中はスケルトンローダーを表示し、体感速度を向上。
+    * モバイル対応: flexboxレイアウトで枠内に完全収納（max-h-90vh）。
+    * **クレジットカード明細対応**:
+        - 複数取引を一括検出（バッチモード）。
+        - 取引確認画面で個別編集・削除が可能。
+        - 重複検出機能（同日・同額・同店名でアラート表示）。
 * **Review Queue**:
     * 自動入力（Gmail/OCR）されたデータの確認画面。TinderライクなUIでサクサク承認。
+* **Stats Page (Calendar View)**:
+    * Money Heatmap: 支出額に応じた色分けカレンダー。
+    * 日付クリックで Daily Detail Modal を表示:
+        - その日の取引内訳（円グラフ + カテゴリ別リスト）。
+        - カテゴリごとの合計金額。
+    * 月切り替え: ボタン（大きめ、rounded-full）+ スワイプジェスチャー対応。
+    * ハプティックフィードバック（月変更・日付選択時）。
+* **Bottom Tab Navigation**:
+    * iOS スタイルの固定タブバー（Home / Stats / Review）。
+    * Framer Motion の layoutId でスムーズな選択アニメーション。
+    * 半透明ガラス効果（bg-white/80 + backdrop-blur-xl）。
 
 ## 6. Implementation Roadmap
 
