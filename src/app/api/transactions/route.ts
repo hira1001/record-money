@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const validationResult = transactionSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Invalid request data", details: validationResult.error.errors },
+        { error: "Invalid request data", details: validationResult.error.issues },
         { status: 400 }
       );
     }
