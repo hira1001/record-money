@@ -48,52 +48,48 @@
   --color-income: var(--income);
   --color-expense: var(--expense);
   --color-action: var(--action);
-  --color-glass: var(--glass);
-  --color-glass-border: var(--glass-border);
 }
 
 :root {
-  --radius: 0.75rem;
-  /* Cyber-Glass Theme - Dark Only */
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: rgba(24, 24, 27, 0.5);
-  --card-foreground: #fafafa;
-  --popover: rgba(24, 24, 27, 0.8);
-  --popover-foreground: #fafafa;
-  --primary: #3b82f6;
-  --primary-foreground: #fafafa;
-  --secondary: rgba(39, 39, 42, 0.8);
-  --secondary-foreground: #fafafa;
-  --muted: rgba(39, 39, 42, 0.6);
-  --muted-foreground: #a1a1aa;
-  --accent: rgba(59, 130, 246, 0.1);
-  --accent-foreground: #3b82f6;
-  --destructive: #f43f5e;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.1);
-  --ring: #3b82f6;
-  /* Custom semantic colors */
-  --income: #10b981;
-  --expense: #f43f5e;
-  --action: #3b82f6;
-  --glass: rgba(24, 24, 27, 0.5);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --radius: 1rem;
+  /* Refined Light Theme - Minimal & Elegant */
+  --background: #fafafa;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f172a;
+  /* Semantic colors - Softer, more refined */
+  --income: #0d9488;
+  --expense: #e11d48;
+  --action: #0f172a;
   /* Chart colors */
-  --chart-1: #3b82f6;
-  --chart-2: #10b981;
-  --chart-3: #f43f5e;
+  --chart-1: #0f172a;
+  --chart-2: #0d9488;
+  --chart-3: #e11d48;
   --chart-4: #f59e0b;
   --chart-5: #8b5cf6;
   /* Sidebar */
-  --sidebar: rgba(9, 9, 11, 0.95);
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #fafafa;
-  --sidebar-accent: rgba(59, 130, 246, 0.1);
-  --sidebar-accent-foreground: #3b82f6;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #3b82f6;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f172a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #0f172a;
 }
 
 @layer base {
@@ -102,7 +98,8 @@
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -110,65 +107,81 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Custom scrollbar */
+  /* Hide scrollbar but keep functionality */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    width: 0px;
+    height: 0px;
   }
 }
 
 @layer utilities {
-  /* Glass morphism effect */
-  .glass {
-    background: var(--glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-  }
-
-  .glass-card {
-    background: var(--glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
+  /* Elevated card with subtle shadow */
+  .card-elevated {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 16px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.04);
     border-radius: var(--radius-lg);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
 
-  /* Glow effects */
-  .glow-income {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  .card-elevated:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
   }
 
-  .glow-expense {
-    box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
+  /* Hero card for main balance */
+  .card-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.15);
   }
 
-  .glow-action {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  /* Subtle header */
+  .header-clean {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   }
 
-  /* Text gradient */
+  /* Status badges */
+  .badge-income {
+    background: rgba(13, 148, 136, 0.08);
+    color: #0d9488;
+    font-weight: 500;
+  }
+
+  .badge-expense {
+    background: rgba(225, 29, 72, 0.08);
+    color: #e11d48;
+    font-weight: 500;
+  }
+
+  .badge-neutral {
+    background: #f1f5f9;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  /* Icon containers */
+  .icon-income {
+    background: rgba(13, 148, 136, 0.08);
+    color: #0d9488;
+  }
+
+  .icon-expense {
+    background: rgba(225, 29, 72, 0.08);
+    color: #e11d48;
+  }
+
+  /* Text utilities */
   .text-gradient {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #475569 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Number display */
   .text-money {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" on;
@@ -181,5 +194,19 @@
 
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Button press effect */
+  .press-effect {
+    transition: transform 0.15s ease;
+  }
+
+  .press-effect:active {
+    transform: scale(0.98);
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }

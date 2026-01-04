@@ -29,10 +29,10 @@ export function FAB({ onClick }: FABProps) {
           }
           onClick();
         }}
-        className="w-14 h-14 rounded-full bg-action hover:bg-action/90 shadow-lg glow-action transition-all hover:scale-105 active:scale-95"
+        className="w-14 h-14 rounded-full bg-action hover:bg-action/90 shadow-lg shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 press-effect"
         size="icon"
       >
-        <Plus className="w-6 h-6" />
+        <Plus className="w-6 h-6 text-white" />
       </Button>
     </motion.div>
   );

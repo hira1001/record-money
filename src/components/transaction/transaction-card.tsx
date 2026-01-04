@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
 import type { Transaction } from "@/types";
 import {
   ShoppingBag,
@@ -55,18 +54,16 @@ export function TransactionCard({ transaction, index = 0 }: TransactionCardProps
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, delay: index * 0.03 }}
     >
-      <Card className="glass-card p-4 hover:bg-white/5 transition-colors">
+      <div className="card-elevated p-4 cursor-pointer press-effect">
         <div className="flex items-center gap-4">
           {/* Icon */}
           <div
-            className={`p-3 rounded-xl ${
-              transaction.type === "income"
-                ? "bg-income/10 text-income"
-                : "bg-expense/10 text-expense"
+            className={`p-2.5 rounded-xl ${
+              transaction.type === "income" ? "icon-income" : "icon-expense"
             }`}
           >
             <Icon className="w-5 h-5" />
@@ -74,23 +71,25 @@ export function TransactionCard({ transaction, index = 0 }: TransactionCardProps
 
           {/* Details */}
           <div className="flex-1 min-w-0">
-            <p className="font-medium truncate">
+            <p className="font-medium text-foreground truncate">
               {transaction.description || transaction.category?.name || "取引"}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(transaction.date)}
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-muted-foreground">
+                {formatDate(transaction.date)}
+              </p>
               {transaction.source !== "manual" && (
-                <span className="ml-2 px-1.5 py-0.5 bg-action/10 text-action rounded text-[10px]">
+                <span className="px-1.5 py-0.5 badge-neutral rounded text-[10px]">
                   {transaction.source === "ocr" ? "OCR" : "自動"}
                 </span>
               )}
-            </p>
+            </div>
           </div>
 
           {/* Amount */}
           <div className="text-right">
             <p
-              className={`font-bold text-money ${
+              className={`font-semibold text-money ${
                 transaction.type === "income" ? "text-income" : "text-expense"
               }`}
             >
@@ -99,7 +98,7 @@ export function TransactionCard({ transaction, index = 0 }: TransactionCardProps
             </p>
           </div>
         </div>
-      </Card>
+      </div>
     </motion.div>
   );
 }
