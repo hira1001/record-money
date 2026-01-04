@@ -122,6 +122,42 @@ export default function ReviewPage() {
     setEditingTransaction(null);
   };
 
+  // Get card styling based on drag offset and direction
+  const getCardStyle = () => {
+    // If swiping is confirmed (direction is set), show full color
+    if (direction === "right") {
+      return {
+        backgroundColor: "rgba(16, 185, 129, 0.2)", // income color with stronger opacity
+        borderColor: "rgba(16, 185, 129, 0.5)",
+      };
+    } else if (direction === "left") {
+      return {
+        backgroundColor: "rgba(244, 63, 94, 0.2)", // expense color with stronger opacity
+        borderColor: "rgba(244, 63, 94, 0.5)",
+      };
+    }
+
+    // During drag, show lighter color
+    if (dragOffset > 50) {
+      // Approve (right swipe) - green
+      return {
+        backgroundColor: "rgba(16, 185, 129, 0.1)", // income color with opacity
+        borderColor: "rgba(16, 185, 129, 0.3)",
+      };
+    } else if (dragOffset < -50) {
+      // Reject (left swipe) - red
+      return {
+        backgroundColor: "rgba(244, 63, 94, 0.1)", // expense color with opacity
+        borderColor: "rgba(244, 63, 94, 0.3)",
+      };
+    }
+
+    return {
+      backgroundColor: "transparent",
+      borderColor: "transparent",
+    };
+  };
+
   if (currentIndex >= transactions.length) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center p-6">
@@ -205,13 +241,15 @@ export default function ReviewPage() {
             {currentTransaction && (
               <motion.div
                 key={currentTransaction.id}
-                className="absolute inset-0 card-elevated p-6 cursor-grab active:cursor-grabbing"
+                className="absolute inset-0 card-elevated p-6 cursor-grab active:cursor-grabbing border-2"
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{
                   scale: 1,
                   opacity: 1,
                   x: direction === "right" ? 300 : direction === "left" ? -300 : 0,
                   rotate: direction === "right" ? 15 : direction === "left" ? -15 : 0,
+                  backgroundColor: getCardStyle().backgroundColor,
+                  borderColor: getCardStyle().borderColor,
                 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
