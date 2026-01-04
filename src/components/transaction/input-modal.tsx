@@ -316,13 +316,13 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md mx-4 p-0 gap-0 bg-card border-border overflow-hidden">
-        <DialogHeader className="p-5 pb-0">
+      <DialogContent className="max-w-md w-[calc(100vw-2rem)] mx-auto p-0 gap-0 bg-card border-border overflow-hidden max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-5 pb-0 flex-shrink-0">
           <DialogTitle className="text-lg font-semibold">取引を追加</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid grid-cols-3 mx-5 bg-secondary">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 flex flex-col flex-1 min-h-0">
+          <TabsList className="grid grid-cols-3 mx-5 bg-secondary flex-shrink-0">
             <TabsTrigger value="manual" className="gap-1.5 text-xs">
               <Keyboard className="w-3.5 h-3.5" />
               手入力
@@ -337,7 +337,7 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
             </TabsTrigger>
           </TabsList>
 
-          <div className="p-5 pt-4">
+          <div className="p-5 pt-4 overflow-y-auto flex-1">
             <TabsContent value="manual" className="mt-0 space-y-4">
               {/* Type Toggle */}
               <div className="grid grid-cols-2 gap-2">

@@ -72,6 +72,7 @@ const mockTransactions: Transaction[] = [
 export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [monthlyBudget, setMonthlyBudget] = useState(200000);
 
   // Calculate summary data
   const totalIncome = transactions
@@ -82,9 +83,16 @@ export default function DashboardPage() {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const monthlyBudget = 200000;
   const remainingBudget = monthlyBudget - totalExpense;
   const percentUsed = (totalExpense / monthlyBudget) * 100;
+
+  const handleBudgetChange = (newBudget: number) => {
+    setMonthlyBudget(newBudget);
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate([10, 30, 10]);
+    }
+  };
 
   const handleAddTransaction = (data: {
     amount: number;
@@ -149,6 +157,7 @@ export default function DashboardPage() {
               remainingBudget={remainingBudget}
               totalBudget={monthlyBudget}
               percentUsed={percentUsed}
+              onBudgetChange={handleBudgetChange}
             />
           </motion.div>
 

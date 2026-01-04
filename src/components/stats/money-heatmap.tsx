@@ -14,6 +14,7 @@ import { ja } from "date-fns/locale";
 
 interface MoneyHeatmapProps {
   month: Date;
+  onDateClick?: (date: Date) => void;
 }
 
 // Mock daily spending data
@@ -37,7 +38,7 @@ const mockDailyData: Record<string, number> = {
 
 const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
 
-export function MoneyHeatmap({ month }: MoneyHeatmapProps) {
+export function MoneyHeatmap({ month, onDateClick }: MoneyHeatmapProps) {
   const days = useMemo(() => {
     const start = startOfMonth(month);
     const end = endOfMonth(month);
@@ -95,8 +96,10 @@ export function MoneyHeatmap({ month }: MoneyHeatmapProps) {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.01 }}
-              className={`aspect-square rounded-lg ${intensity} flex flex-col items-center justify-center cursor-pointer hover:ring-2 hover:ring-foreground/20 transition-all`}
+              className={`aspect-square rounded-lg ${intensity} flex flex-col items-center justify-center cursor-pointer hover:ring-2 hover:ring-foreground/20 transition-all press-effect`}
               title={amount > 0 ? formatCurrency(amount) : "支出なし"}
+              onClick={() => onDateClick?.(day)}
+              whileTap={{ scale: 0.95 }}
             >
               <span className="text-xs font-medium text-foreground/70">
                 {format(day, "d")}

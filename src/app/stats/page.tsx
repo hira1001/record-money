@@ -7,11 +7,77 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MoneyHeatmap } from "@/components/stats/money-heatmap";
 import { CategoryChart } from "@/components/stats/category-chart";
+import { DailyDetailModal } from "@/components/stats/daily-detail-modal";
 import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
+import type { Transaction } from "@/types";
+
+// Mock daily transactions
+const mockDailyTransactions: Record<string, Transaction[]> = {
+  "2026-01-01": [
+    {
+      id: "1",
+      user_id: "user-1",
+      amount: 2500,
+      type: "expense",
+      category_id: "food",
+      category: { id: "food", user_id: null, name: "食費", color: "#f59e0b", icon: "food", is_default: true },
+      description: "初詣の屋台",
+      date: "2026-01-01T10:30:00Z",
+      status: "confirmed",
+      source: "manual",
+      created_at: "2026-01-01T10:30:00Z",
+    },
+  ],
+  "2026-01-03": [
+    {
+      id: "2",
+      user_id: "user-1",
+      amount: 12000,
+      type: "expense",
+      category_id: "entertainment",
+      category: { id: "entertainment", user_id: null, name: "娯楽", color: "#ec4899", icon: "entertainment", is_default: true },
+      description: "映画館",
+      date: "2026-01-03T14:00:00Z",
+      status: "confirmed",
+      source: "ocr",
+      created_at: "2026-01-03T14:00:00Z",
+    },
+    {
+      id: "3",
+      user_id: "user-1",
+      amount: 3000,
+      type: "expense",
+      category_id: "food",
+      category: { id: "food", user_id: null, name: "食費", color: "#f59e0b", icon: "food", is_default: true },
+      description: "ディナー",
+      date: "2026-01-03T19:00:00Z",
+      status: "confirmed",
+      source: "manual",
+      created_at: "2026-01-03T19:00:00Z",
+    },
+  ],
+  "2026-01-04": [
+    {
+      id: "4",
+      user_id: "user-1",
+      amount: 1200,
+      type: "expense",
+      category_id: "food",
+      category: { id: "food", user_id: null, name: "食費", color: "#f59e0b", icon: "food", is_default: true },
+      description: "セブンイレブン",
+      date: "2026-01-04T08:30:00Z",
+      status: "confirmed",
+      source: "manual",
+      created_at: "2026-01-04T08:30:00Z",
+    },
+  ],
+};
 
 export default function StatsPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const goToPreviousMonth = () => {
     setCurrentMonth((prev) => subMonths(prev, 1));
@@ -42,6 +108,20 @@ export default function StatsPage() {
       minimumFractionDigits: 0,
     }).format(amount);
   };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    setIsDetailModalOpen(true);
+  };
+
+  const selectedDateTransactions = selectedDate
+    ? mockDailyTransactions[format(selectedDate, "yyyy-MM-dd")] || []
+    : [];
+
+  const selectedDateTotal = selectedDateTransactions.reduce(
+    (sum, t) => sum + t.amount,
+    0
+  );
 
   return (
     <main className="min-h-screen bg-background safe-top safe-bottom pb-8">
@@ -121,7 +201,7 @@ export default function StatsPage() {
           transition={{ delay: 0.25 }}
         >
           <h2 className="text-sm font-medium mb-3 px-1">支出ヒートマップ</h2>
-          <MoneyHeatmap month={currentMonth} />
+          <MoneyHeatmap month={currentMonth} onDateClick={handleDateClick} />
         </motion.section>
 
         {/* Category Breakdown */}
@@ -134,6 +214,15 @@ export default function StatsPage() {
           <CategoryChart categories={monthlyData.categoryBreakdown} />
         </motion.section>
       </div>
+
+      {/* Daily Detail Modal */}
+      <DailyDetailModal
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        date={selectedDate}
+        transactions={selectedDateTransactions}
+        totalAmount={selectedDateTotal}
+      />
     </main>
   );
 }
