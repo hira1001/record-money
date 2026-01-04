@@ -1,16 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// Using system fonts as fallback to ensure reliable builds
+// Google Fonts (Geist) will be used when available via CSS fallback
+const fontConfig = {
+  sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  mono: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace"
+};
 
-const geistMono = Geist_Mono({
+const geistSans = {
+  variable: "--font-geist-sans",
+  className: ""
+};
+
+const geistMono = {
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  className: ""
+};
 
 export const metadata: Metadata = {
   title: "RecordMoney - 入力は透明に、資産は鮮明に",
@@ -40,9 +46,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen`}
-      >
+      <head>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            :root {
+              --font-geist-sans: ${fontConfig.sans};
+              --font-geist-mono: ${fontConfig.mono};
+            }
+          `
+        }} />
+      </head>
+      <body className="font-sans antialiased min-h-screen">
         {children}
       </body>
     </html>

@@ -4,15 +4,26 @@ import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Use service role for webhook (no user session)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
+// Create Supabase client with service role
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-});
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
+
+// Create Google AI client
+function getGoogleClient() {
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing Google AI API key");
+  }
+  return createGoogleGenerativeAI({ apiKey });
+}
 
 const transactionSchema = z.object({
   amount: z.number().describe("Transaction amount in JPY"),
@@ -51,10 +62,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email using admin API
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(user_email);
+    // Get clients
+    const supabase = getSupabaseClient();
+    const google = getGoogleClient();
 
-    if (userError || !userData?.user) {
+    // Find user by email using admin API
+    const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
+
+    if (userError) {
+      return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+    }
+
+    const user = users.find((u) => u.email === user_email);
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
@@ -91,7 +111,7 @@ ${email_body}
     const { data: transaction, error: insertError } = await supabase
       .from("transactions")
       .insert({
-        user_id: userData.user.id,
+        user_id: user.id,
         amount: object.amount,
         type: object.type,
         category_id: categoryData?.id || null,

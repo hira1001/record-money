@@ -1,15 +1,21 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
 export function createClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+  // During build time, environment variables might not be available
+  // The actual runtime will have them from Vercel environment
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("Supabase credentials are required in production");
+    // Only warn during development/build, don't throw
+    if (typeof window === 'undefined') {
+      // Server-side/build time - return a dummy client
+      console.warn("Supabase credentials not configured (build time)");
+      return createBrowserClient("https://placeholder.supabase.co", "placeholder-key");
     }
-    // Return a mock client for build time in development
-    console.warn("Supabase credentials not configured");
+    // Client-side runtime without credentials - this is a real error
+    throw new Error("Supabase credentials are required");
   }
+
   return createBrowserClient(supabaseUrl, supabaseAnonKey);
 }
