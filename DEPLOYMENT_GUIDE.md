@@ -140,6 +140,33 @@ Vercelが自動的に再デプロイします。
 2. 環境変数が正しく設定されているか確認
 3. TypeScriptエラーがないか確認
 
+### Google Fontsの読み込みエラー
+
+**問題**: ビルド時に「Failed to fetch `Geist` from Google Fonts」エラーが発生
+
+**解決策**:
+- システムフォント(system-ui, Roboto等)をフォールバックとして使用
+- Google Fontsへの依存を排除してビルドの信頼性を向上
+- 現在のバージョンではシステムフォントを使用するため、この問題は解決済み
+
+### Supabase環境変数エラー
+
+**問題**: ビルド時に「Supabase credentials are required in production」エラー
+
+**解決策**:
+- ビルド時には環境変数が利用できない場合があります
+- クライアント作成をビルド時とランタイムで分離
+- `src/lib/supabase/client.ts`でビルド時はプレースホルダークライアントを返すように修正済み
+
+### Supabase Admin APIエラー
+
+**問題**: `getUserByEmail` メソッドが存在しない
+
+**解決策**:
+- Supabase JS v2では`getUserByEmail()`が廃止されました
+- 代わりに`listUsers()`を使用してメールでフィルタリング
+- `src/app/api/webhooks/ingest/route.ts`で修正済み
+
 ### 認証エラー
 
 **問題**: Google OAuthでログインできない

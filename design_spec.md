@@ -38,6 +38,7 @@
 * **Animation**: **Framer Motion** (必須: ページ遷移、数字カウントアップ、グラフアニメーション)
 * **Icons**: **Lucide React**
 * **Charts**: **Recharts** (Customized for minimal aesthetic)
+* **Fonts**: システムフォント (System-UI fallback) - ビルド時の信頼性向上のため
 
 ### Backend & Infrastructure
 * **BaaS**: **Supabase** (Free Tier)
