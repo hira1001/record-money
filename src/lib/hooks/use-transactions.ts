@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Transaction, TransactionType } from "@/types";
 
@@ -9,7 +9,7 @@ export function useTransactions() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchTransactions = useCallback(async () => {
     setIsLoading(true);
@@ -100,9 +100,12 @@ export function useTransactions() {
 
   const deleteTransaction = useCallback(
     async (id: string) => {
-      // Optimistic delete
-      const deletedTransaction = transactions.find((t) => t.id === id);
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      // Optimistic delete - use functional update to get current state
+      let deletedTransaction: Transaction | undefined;
+      setTransactions((prev) => {
+        deletedTransaction = prev.find((t) => t.id === id);
+        return prev.filter((t) => t.id !== id);
+      });
 
       try {
         const { error: deleteError } = await supabase
@@ -114,12 +117,12 @@ export function useTransactions() {
       } catch (err) {
         // Rollback on error
         if (deletedTransaction) {
-          setTransactions((prev) => [deletedTransaction, ...prev]);
+          setTransactions((prev) => [deletedTransaction!, ...prev]);
         }
         throw err;
       }
     },
-    [supabase, transactions]
+    [supabase]
   );
 
   useEffect(() => {

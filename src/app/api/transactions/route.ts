@@ -1,5 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
+const transactionSchema = z.object({
+  amount: z.number().int().positive(),
+  type: z.enum(["income", "expense"]),
+  category_id: z.string().uuid().nullable().optional(),
+  description: z.string().max(500).nullable().optional(),
+  date: z.string().datetime().optional(),
+  source: z.enum(["manual", "ocr", "gmail_auto"]).optional(),
+  status: z.enum(["confirmed", "review_needed"]).optional(),
+});
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -46,10 +57,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { amount, type, category_id, description, date, source, status } = body;
+  try {
+    const body = await request.json();
+    
+    // Validate request body
+    const validationResult = transactionSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "Invalid request data", details: validationResult.error.errors },
+        { status: 400 }
+      );
+    }
 
-  const { data, error } = await supabase
+    const { amount, type, category_id, description, date, source, status } = validationResult.data;
+
+    const { data, error } = await supabase
     .from("transactions")
     .insert({
       user_id: user.id,
@@ -69,9 +91,18 @@ export async function POST(request: NextRequest) {
     )
     .single();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-  return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(data, { status: 201 });
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

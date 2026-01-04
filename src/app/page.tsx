@@ -7,7 +7,10 @@ import { SummaryStats } from "@/components/dashboard/summary-stats";
 import { TransactionList } from "@/components/dashboard/transaction-list";
 import { FAB } from "@/components/dashboard/fab";
 import { InputModal } from "@/components/transaction/input-modal";
-import { User, ChevronRight } from "lucide-react";
+import { User, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { AssetsFlow } from "@/components/dashboard/assets-flow";
 import type { Transaction, TransactionType } from "@/types";
 
 // Mock data for initial development
@@ -132,28 +135,107 @@ export default function DashboardPage() {
         </div>
       </motion.header>
 
-      <div className="px-4 py-4 space-y-4 max-w-lg mx-auto">
-        {/* Balance Card */}
-        <BalanceCard
-          remainingBudget={remainingBudget}
-          totalBudget={monthlyBudget}
-          percentUsed={percentUsed}
-        />
+      <div className="px-4 py-4 max-w-lg mx-auto">
+        {/* Bento Grid Layout */}
+        <div className="grid grid-cols-2 gap-3 auto-rows-fr">
+          {/* Large Balance Card - spans 2 columns */}
+          <motion.div
+            className="col-span-2"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <BalanceCard
+              remainingBudget={remainingBudget}
+              totalBudget={monthlyBudget}
+              percentUsed={percentUsed}
+            />
+          </motion.div>
 
-        {/* Summary Stats */}
-        <SummaryStats totalIncome={totalIncome} totalExpense={totalExpense} />
+          {/* Income Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="card-elevated p-4"
+          >
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-2 rounded-lg icon-income">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <p className="text-xs text-muted-foreground">収入</p>
+              </div>
+              <p className="text-xl font-bold text-money text-income">
+                {new Intl.NumberFormat("ja-JP", {
+                  style: "currency",
+                  currency: "JPY",
+                  minimumFractionDigits: 0,
+                }).format(totalIncome)}
+              </p>
+            </div>
+          </motion.div>
 
-        {/* Transaction List */}
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-sm font-medium text-foreground">最近の取引</h2>
-            <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors press-effect">
-              すべて見る
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-          <TransactionList transactions={transactions} />
-        </section>
+          {/* Expense Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="card-elevated p-4"
+          >
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-2 rounded-lg icon-expense">
+                  <TrendingDown className="w-4 h-4" />
+                </div>
+                <p className="text-xs text-muted-foreground">支出</p>
+              </div>
+              <p className="text-xl font-bold text-money text-expense">
+                {new Intl.NumberFormat("ja-JP", {
+                  style: "currency",
+                  currency: "JPY",
+                  minimumFractionDigits: 0,
+                }).format(totalExpense)}
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Assets Flow Animation Card - spans 2 columns */}
+          <motion.div
+            className="col-span-2 card-elevated p-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-foreground">収支バランス</h3>
+              <Link href="/stats">
+                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                  詳細
+                  <ChevronRight className="w-3 h-3 ml-1" />
+                </Button>
+              </Link>
+            </div>
+            <AssetsFlow totalIncome={totalIncome} totalExpense={totalExpense} />
+          </motion.div>
+
+          {/* Quick Stats - spans 2 columns */}
+          <motion.div
+            className="col-span-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+          >
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h2 className="text-sm font-medium text-foreground">最近の取引</h2>
+              <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors press-effect">
+                すべて見る
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <TransactionList transactions={transactions.slice(0, 3)} />
+          </motion.div>
+        </div>
       </div>
 
       {/* Floating Action Button */}

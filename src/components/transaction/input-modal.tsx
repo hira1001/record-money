@@ -4,6 +4,56 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+
+// Type definitions for Web Speech API
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start(): void;
+  stop(): void;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: {
+      new (): SpeechRecognition;
+    };
+    webkitSpeechRecognition: {
+      new (): SpeechRecognition;
+    };
+  }
+}
 import {
   Dialog,
   DialogContent,
@@ -72,6 +122,12 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
     description: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceResult, setVoiceResult] = useState<{
+    amount: number;
+    description: string;
+  } | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const handleSubmit = () => {
     if (!amount || isNaN(Number(amount))) return;
@@ -98,6 +154,126 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
     setCategory("");
     setDate(new Date());
     setScanResult(null);
+    setVoiceResult(null);
+  };
+
+  // Voice recognition setup
+  const setupVoiceRecognition = () => {
+    if (typeof window === "undefined") return null;
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      console.warn("Speech Recognition API not supported");
+      return null;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ja-JP";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+    };
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      parseVoiceInput(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error:", event.error);
+      setIsListening(false);
+      if (navigator.vibrate) {
+        navigator.vibrate([10, 50, 10]);
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    return recognition;
+  };
+
+  const parseVoiceInput = (transcript: string) => {
+    // Extract amount (numbers followed by 円)
+    const amountMatch = transcript.match(/(\d+)[万円千]/);
+    let extractedAmount = 0;
+    let extractedDescription = transcript;
+
+    if (amountMatch) {
+      const number = parseInt(amountMatch[1]);
+      if (transcript.includes("万")) {
+        extractedAmount = number * 10000;
+      } else if (transcript.includes("千")) {
+        extractedAmount = number * 1000;
+      } else {
+        extractedAmount = number;
+      }
+
+      // Extract description (remove amount part)
+      extractedDescription = transcript
+        .replace(/\d+[万円千]/g, "")
+        .replace(/円/g, "")
+        .trim();
+    } else {
+      // Try to find just numbers
+      const numberMatch = transcript.match(/\d+/);
+      if (numberMatch) {
+        extractedAmount = parseInt(numberMatch[0]);
+        extractedDescription = transcript.replace(/\d+/g, "").trim();
+      }
+    }
+
+    // Determine type from keywords
+    const incomeKeywords = ["給与", "給料", "収入", "入金"];
+    const expenseKeywords = ["ランチ", "食事", "買い物", "支出", "出金"];
+    const isIncome = incomeKeywords.some((keyword) => transcript.includes(keyword));
+    const isExpense = expenseKeywords.some((keyword) => transcript.includes(keyword));
+
+    if (isIncome) {
+      setType("income");
+    } else if (isExpense || !isIncome) {
+      setType("expense");
+    }
+
+    if (extractedAmount > 0) {
+      setVoiceResult({
+        amount: extractedAmount,
+        description: extractedDescription || "音声入力",
+      });
+      setAmount(String(extractedAmount));
+      setDescription(extractedDescription || "音声入力");
+      if (navigator.vibrate) {
+        navigator.vibrate([10, 30, 10]);
+      }
+    } else {
+      // If no amount found, show error
+      setVoiceResult(null);
+    }
+  };
+
+  const handleVoiceInput = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = setupVoiceRecognition();
+    if (!recognition) {
+      alert("お使いのブラウザは音声認識に対応していません");
+      return;
+    }
+
+    recognitionRef.current = recognition;
+    recognition.start();
   };
 
   const handleImageCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,20 +571,107 @@ export function InputModal({ open, onOpenChange, onSubmit }: InputModalProps) {
             </TabsContent>
 
             <TabsContent value="voice" className="mt-0">
-              <div className="py-8 flex flex-col items-center">
-                <motion.button
-                  className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center hover:bg-muted transition-colors"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Mic className="w-8 h-8 text-muted-foreground" />
-                </motion.button>
-                <p className="mt-4 text-muted-foreground text-sm">
-                  タップして話しかける
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  例: 「ランチで800円」
-                </p>
-              </div>
+              <AnimatePresence mode="wait">
+                {voiceResult ? (
+                  <motion.div
+                    key="result"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-4"
+                  >
+                    <div className="p-4 bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2 text-income mb-3">
+                        <Check className="w-5 h-5" />
+                        <span className="font-medium">音声認識完了</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">金額</span>
+                          <span className="font-semibold">
+                            ¥{voiceResult.amount.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">内容</span>
+                          <span className="font-medium">{voiceResult.description}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleSubmit}
+                      className="w-full h-12 bg-foreground text-background hover:bg-foreground/90"
+                    >
+                      この内容で記録
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setVoiceResult(null);
+                        setAmount("");
+                        setDescription("");
+                        handleVoiceInput();
+                      }}
+                      className="w-full"
+                    >
+                      再入力
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="input"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="py-8 flex flex-col items-center"
+                  >
+                    <motion.button
+                      className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors ${
+                        isListening
+                          ? "bg-expense/20 animate-pulse"
+                          : "bg-secondary hover:bg-muted"
+                      }`}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleVoiceInput}
+                    >
+                      <Mic
+                        className={`w-8 h-8 ${
+                          isListening ? "text-expense" : "text-muted-foreground"
+                        }`}
+                      />
+                    </motion.button>
+                    <p className="mt-4 text-muted-foreground text-sm">
+                      {isListening ? "聞き取り中..." : "タップして話しかける"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      例: 「ランチで800円」「給与35万円」
+                    </p>
+                    {isListening && (
+                      <motion.div
+                        className="mt-4 flex gap-1"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="w-2 h-2 rounded-full bg-expense"
+                            animate={{
+                              scale: [1, 1.5, 1],
+                              opacity: [0.5, 1, 0.5],
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              delay: i * 0.2,
+                            }}
+                          />
+                        ))}
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </TabsContent>
           </div>
         </Tabs>
