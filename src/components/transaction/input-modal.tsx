@@ -391,16 +391,16 @@ export function InputModal({ open, onOpenChange, onSubmit, existingTransactions 
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 flex flex-col flex-1 min-h-0">
-          <TabsList className="grid grid-cols-3 mx-5 bg-secondary flex-shrink-0">
-            <TabsTrigger value="manual" className="gap-1.5 text-xs">
+          <TabsList className="grid grid-cols-3 w-full mx-5 bg-secondary flex-shrink-0">
+            <TabsTrigger value="manual" className="flex items-center justify-center gap-1.5 text-xs">
               <Keyboard className="w-3.5 h-3.5" />
               手入力
             </TabsTrigger>
-            <TabsTrigger value="camera" className="gap-1.5 text-xs">
+            <TabsTrigger value="camera" className="flex items-center justify-center gap-1.5 text-xs">
               <Camera className="w-3.5 h-3.5" />
               カメラ
             </TabsTrigger>
-            <TabsTrigger value="voice" className="gap-1.5 text-xs">
+            <TabsTrigger value="voice" className="flex items-center justify-center gap-1.5 text-xs">
               <Mic className="w-3.5 h-3.5" />
               音声
             </TabsTrigger>
@@ -544,7 +544,6 @@ export function InputModal({ open, onOpenChange, onSubmit, existingTransactions 
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 onChange={handleImageCapture}
                 className="hidden"
               />
@@ -627,7 +626,7 @@ export function InputModal({ open, onOpenChange, onSubmit, existingTransactions 
                       <div className="text-center">
                         <Camera className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
                         <p className="text-muted-foreground font-medium">
-                          レシートを撮影
+                          レシートを撮影 / 選択
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           AIが自動で金額を読み取ります

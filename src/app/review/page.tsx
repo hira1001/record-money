@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Check, X, Edit2, ChevronLeft } from "lucide-react";
+import { Check, X, Edit2, ChevronLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BottomTabBar } from "@/components/navigation/bottom-tab-bar";
+import { EditTransactionModal } from "@/components/transaction/edit-transaction-modal";
 import Link from "next/link";
 import type { Transaction } from "@/types";
 
@@ -55,6 +56,9 @@ export default function ReviewPage() {
   const [transactions, setTransactions] = useState(mockPendingTransactions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const currentTransaction = transactions[currentIndex];
   const remaining = transactions.length - currentIndex;
@@ -100,7 +104,22 @@ export default function ReviewPage() {
     setTimeout(() => {
       setCurrentIndex((prev) => prev + 1);
       setDirection(null);
+      setDragOffset(0);
     }, 200);
+  };
+
+  const handleEdit = () => {
+    if (!currentTransaction) return;
+    setEditingTransaction(currentTransaction);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = (updatedTransaction: Transaction) => {
+    // Update the transaction in the list
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === updatedTransaction.id ? updatedTransaction : t))
+    );
+    setEditingTransaction(null);
   };
 
   if (currentIndex >= transactions.length) {
@@ -149,6 +168,39 @@ export default function ReviewPage() {
       {/* Card Stack */}
       <div className="flex-1 flex items-center justify-center px-6 py-8">
         <div className="relative w-full max-w-sm h-[400px]">
+          {/* Background indicators */}
+          <div className="absolute inset-0 flex items-center justify-between px-8 pointer-events-none">
+            {/* Reject indicator (left swipe) */}
+            <motion.div
+              className="flex flex-col items-center gap-2"
+              animate={{
+                opacity: dragOffset < -50 ? 1 : 0,
+                scale: dragOffset < -50 ? 1 : 0.8,
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="w-16 h-16 rounded-full bg-expense/20 flex items-center justify-center">
+                <Trash2 className="w-8 h-8 text-expense" />
+              </div>
+              <span className="text-sm font-medium text-expense">削除</span>
+            </motion.div>
+
+            {/* Approve indicator (right swipe) */}
+            <motion.div
+              className="flex flex-col items-center gap-2"
+              animate={{
+                opacity: dragOffset > 50 ? 1 : 0,
+                scale: dragOffset > 50 ? 1 : 0.8,
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="w-16 h-16 rounded-full bg-income/20 flex items-center justify-center">
+                <Check className="w-8 h-8 text-income" />
+              </div>
+              <span className="text-sm font-medium text-income">承認</span>
+            </motion.div>
+          </div>
+
           <AnimatePresence>
             {currentTransaction && (
               <motion.div
@@ -165,7 +217,11 @@ export default function ReviewPage() {
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(_, info) => handleSwipe(info)}
+                onDrag={(_, info) => setDragOffset(info.offset.x)}
+                onDragEnd={(_, info) => {
+                  setDragOffset(0);
+                  handleSwipe(info);
+                }}
               >
                 {/* Source badge */}
                 <div className="flex justify-between items-start mb-6">
@@ -224,10 +280,10 @@ export default function ReviewPage() {
           <Button
             variant="outline"
             size="lg"
-            className="w-14 h-14 rounded-full"
-            onClick={() => {/* TODO: Edit modal */}}
+            className="w-14 h-14 rounded-full hover:bg-action/10 hover:border-action/40"
+            onClick={handleEdit}
           >
-            <Edit2 className="w-5 h-5" />
+            <Edit2 className="w-5 h-5 text-action" />
           </Button>
           <Button
             variant="outline"
@@ -242,6 +298,14 @@ export default function ReviewPage() {
 
       {/* Bottom Tab Bar */}
       <BottomTabBar />
+
+      {/* Edit Transaction Modal */}
+      <EditTransactionModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        transaction={editingTransaction}
+        onSave={handleSaveEdit}
+      />
     </main>
   );
 }
