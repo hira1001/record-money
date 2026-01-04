@@ -237,10 +237,12 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between mb-3 px-1">
               <h2 className="text-sm font-medium text-foreground">最近の取引</h2>
-              <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors press-effect">
-                すべて見る
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              <Link href="/review">
+                <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors press-effect">
+                  すべて見る
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </Link>
             </div>
             <TransactionList transactions={transactions.slice(0, 3)} />
           </motion.div>
