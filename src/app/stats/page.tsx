@@ -8,6 +8,7 @@ import Link from "next/link";
 import { MoneyHeatmap } from "@/components/stats/money-heatmap";
 import { CategoryChart } from "@/components/stats/category-chart";
 import { DailyDetailModal } from "@/components/stats/daily-detail-modal";
+import { BottomTabBar } from "@/components/navigation/bottom-tab-bar";
 import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import type { Transaction } from "@/types";
@@ -152,7 +153,7 @@ export default function StatsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-background safe-top safe-bottom pb-8">
+    <main className="min-h-screen bg-background safe-top pb-24">
       {/* Header */}
       <header className="header-clean px-5 py-4 sticky top-0 z-40">
         <div className="flex items-center justify-between max-w-lg mx-auto">
@@ -255,6 +256,9 @@ export default function StatsPage() {
         transactions={selectedDateTransactions}
         totalAmount={selectedDateTotal}
       />
+
+      {/* Bottom Tab Bar */}
+      <BottomTabBar />
     </main>
   );
 }

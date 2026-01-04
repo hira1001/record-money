@@ -7,6 +7,7 @@ import { SummaryStats } from "@/components/dashboard/summary-stats";
 import { TransactionList } from "@/components/dashboard/transaction-list";
 import { FAB } from "@/components/dashboard/fab";
 import { InputModal } from "@/components/transaction/input-modal";
+import { BottomTabBar } from "@/components/navigation/bottom-tab-bar";
 import { User, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -120,7 +121,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen pb-24 safe-top safe-bottom bg-background">
+    <main className="min-h-screen pb-32 safe-top bg-background">
       {/* Header */}
       <motion.header
         className="sticky top-0 z-40 header-clean px-5 py-4"
@@ -258,6 +259,9 @@ export default function DashboardPage() {
         onOpenChange={setIsModalOpen}
         onSubmit={handleAddTransaction}
       />
+
+      {/* Bottom Tab Bar */}
+      <BottomTabBar />
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Check, X, Edit2, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BottomTabBar } from "@/components/navigation/bottom-tab-bar";
 import Link from "next/link";
 import type { Transaction } from "@/types";
 
@@ -128,7 +129,7 @@ export default function ReviewPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background safe-top safe-bottom">
+    <main className="min-h-screen bg-background safe-top pb-24">
       {/* Header */}
       <header className="header-clean px-5 py-4">
         <div className="flex items-center justify-between max-w-lg mx-auto">
@@ -238,6 +239,9 @@ export default function ReviewPage() {
           </Button>
         </div>
       </div>
+
+      {/* Bottom Tab Bar */}
+      <BottomTabBar />
     </main>
   );
 }
