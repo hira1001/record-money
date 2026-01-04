@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { PWARegister } from "@/components/pwa-register";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 
 // Using system fonts as fallback to ensure reliable builds
 // Google Fonts (Geist) will be used when available via CSS fallback
@@ -57,6 +59,8 @@ export default function RootLayout({
         }} />
       </head>
       <body className="font-sans antialiased min-h-screen">
+        <PWARegister />
+        <PWAInstallPrompt />
         {children}
       </body>
     </html>
