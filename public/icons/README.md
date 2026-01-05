@@ -32,3 +32,4 @@ convert -size 512x512 xc:#0f172a -pointsize 200 -fill white -gravity center -ann
 
 または、オンラインツール（https://realfavicongenerator.net/ など）を使用してアイコンを生成することもできます。
 
+

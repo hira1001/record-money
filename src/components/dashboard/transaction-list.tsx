@@ -8,11 +8,13 @@ import type { Transaction } from "@/types";
 interface TransactionListProps {
   transactions: Transaction[];
   isLoading?: boolean;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 export function TransactionList({
   transactions,
   isLoading,
+  onEdit,
 }: TransactionListProps) {
   if (isLoading) {
     return (
@@ -42,11 +44,16 @@ export function TransactionList({
   return (
     <div className="space-y-3">
       {transactions.map((transaction, index) => (
-        <TransactionCard
+        <div
           key={transaction.id}
-          transaction={transaction}
-          index={index}
-        />
+          onClick={() => onEdit?.(transaction)}
+          className={onEdit ? "cursor-pointer" : ""}
+        >
+          <TransactionCard
+            transaction={transaction}
+            index={index}
+          />
+        </div>
       ))}
     </div>
   );

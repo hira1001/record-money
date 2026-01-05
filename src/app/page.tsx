@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { BalanceCard } from "@/components/dashboard/balance-card";
-import { SummaryStats } from "@/components/dashboard/summary-stats";
 import { TransactionList } from "@/components/dashboard/transaction-list";
 import { FAB } from "@/components/dashboard/fab";
 import { InputModal } from "@/components/transaction/input-modal";
-import { User, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
+import { EditModal } from "@/components/transaction/edit-modal";
+import { UserMenu } from "@/components/dashboard/user-menu";
+import { ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AssetsFlow } from "@/components/dashboard/assets-flow";
@@ -72,6 +73,7 @@ const mockTransactions: Transaction[] = [
 export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   // Calculate summary data
   const totalIncome = transactions
@@ -111,6 +113,26 @@ export default function DashboardPage() {
     setTransactions((prev) => [newTransaction, ...prev]);
   };
 
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+  };
+
+  const handleSaveTransaction = (id: string, data: Partial<Transaction>) => {
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...data } : t))
+    );
+    if (navigator.vibrate) {
+      navigator.vibrate([10, 30, 10]);
+    }
+  };
+
+  const handleDeleteTransaction = (id: string) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    if (navigator.vibrate) {
+      navigator.vibrate([10, 30, 10]);
+    }
+  };
+
   return (
     <main className="min-h-screen pb-24 safe-top safe-bottom bg-background">
       {/* Header */}
@@ -129,9 +151,7 @@ export default function DashboardPage() {
               })}
             </p>
           </div>
-          <button className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center press-effect">
-            <User className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <UserMenu />
         </div>
       </motion.header>
 
@@ -228,12 +248,18 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between mb-3 px-1">
               <h2 className="text-sm font-medium text-foreground">最近の取引</h2>
-              <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors press-effect">
+              <Link
+                href="/transactions"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors press-effect"
+              >
                 すべて見る
                 <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              </Link>
             </div>
-            <TransactionList transactions={transactions.slice(0, 3)} />
+            <TransactionList
+              transactions={transactions.slice(0, 3)}
+              onEdit={handleEditTransaction}
+            />
           </motion.div>
         </div>
       </div>
@@ -246,6 +272,15 @@ export default function DashboardPage() {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         onSubmit={handleAddTransaction}
+      />
+
+      {/* Edit Modal */}
+      <EditModal
+        transaction={editingTransaction}
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+        onSave={handleSaveTransaction}
+        onDelete={handleDeleteTransaction}
       />
     </main>
   );

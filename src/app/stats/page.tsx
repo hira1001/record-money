@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MoneyHeatmap } from "@/components/stats/money-heatmap";
 import { CategoryChart } from "@/components/stats/category-chart";
 import { format, addMonths, subMonths } from "date-fns";
@@ -12,6 +13,7 @@ import { ja } from "date-fns/locale";
 
 export default function StatsPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const router = useRouter();
 
   const goToPreviousMonth = () => {
     setCurrentMonth((prev) => subMonths(prev, 1));
@@ -83,7 +85,8 @@ export default function StatsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="card-elevated p-4 text-center"
+            className="card-elevated p-4 text-center cursor-pointer hover:bg-secondary/50 transition-colors"
+            onClick={() => router.push("/transactions?filter=income")}
           >
             <p className="text-xs text-muted-foreground mb-1">収入</p>
             <p className="font-semibold text-income text-money">
@@ -94,7 +97,8 @@ export default function StatsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="card-elevated p-4 text-center"
+            className="card-elevated p-4 text-center cursor-pointer hover:bg-secondary/50 transition-colors"
+            onClick={() => router.push("/transactions?filter=expense")}
           >
             <p className="text-xs text-muted-foreground mb-1">支出</p>
             <p className="font-semibold text-expense text-money">
@@ -105,7 +109,8 @@ export default function StatsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="card-elevated p-4 text-center"
+            className="card-elevated p-4 text-center cursor-pointer hover:bg-secondary/50 transition-colors"
+            onClick={() => router.push("/transactions")}
           >
             <p className="text-xs text-muted-foreground mb-1">収支</p>
             <p className={`font-semibold text-money ${monthlyData.balance >= 0 ? "text-income" : "text-expense"}`}>

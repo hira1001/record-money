@@ -4,11 +4,17 @@ import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Use service role for webhook (no user session)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
+// Create Supabase client lazily to avoid build-time errors
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return createClient(url, key);
+}
 
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
@@ -51,10 +57,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email using admin API
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(user_email);
+    const supabase = getSupabaseAdmin();
 
-    if (userError || !userData?.user) {
+    // Find user by email using admin API
+    const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
+    const foundUser = users?.find((u: { email?: string }) => u.email === user_email);
+
+    if (userError || !foundUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
@@ -91,7 +100,7 @@ ${email_body}
     const { data: transaction, error: insertError } = await supabase
       .from("transactions")
       .insert({
-        user_id: userData.user.id,
+        user_id: foundUser.id,
         amount: object.amount,
         type: object.type,
         category_id: categoryData?.id || null,

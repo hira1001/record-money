@@ -83,3 +83,4 @@
 - 環境変数は必ずVercelの環境変数設定で管理
 - SupabaseのService Role Keyは絶対に公開しないこと
 
+
