@@ -8,7 +8,8 @@ import { TransactionList } from "@/components/dashboard/transaction-list";
 import { FAB } from "@/components/dashboard/fab";
 import { InputModal } from "@/components/transaction/input-modal";
 import { BottomTabBar } from "@/components/navigation/bottom-tab-bar";
-import { User, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
+import { UserMenu } from "@/components/dashboard/user-menu";
+import { ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AssetsFlow } from "@/components/dashboard/assets-flow";
@@ -138,9 +139,7 @@ export default function DashboardPage() {
               })}
             </p>
           </div>
-          <button className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center press-effect">
-            <User className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <UserMenu />
         </div>
       </motion.header>
 
